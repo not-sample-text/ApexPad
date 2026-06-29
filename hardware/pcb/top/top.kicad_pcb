@@ -1589,7 +1589,7 @@
 			(at 7.75 10 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "e2078f7d-6e44-43aa-8d31-c7c89e3a370e")
+			(uuid "06cb5d26-dd6b-4c7f-8e25-5a0d93c0800a")
 			(effects
 				(font
 					(size 1 1)
@@ -1601,7 +1601,7 @@
 			(at 4 -4.5 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "2d1b6477-11d3-4a0a-ab92-5d8b920b9aeb")
+			(uuid "2c37a024-d460-4bdd-9100-5a49c33e9220")
 			(effects
 				(font
 					(size 1 1)
@@ -1613,7 +1613,7 @@
 			(at -2 -9.5 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "e32fd4d6-c81b-41f3-91ab-60284bcebeed")
+			(uuid "932e91c6-610a-4783-8091-476cf6948b89")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1625,7 +1625,7 @@
 			(at -7 -7.5 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "55707685-ea7b-461e-9316-9c04d7167f5b")
+			(uuid "bc399993-80b2-4e49-9465-06fc2ab335e8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4649,7 +4649,7 @@
 			(at -5.15 0 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "230f09de-cef7-43c9-922d-3823c8e93ae9")
+			(uuid "e13c5899-181c-404f-adf2-9e1a1555a60b")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4661,7 +4661,7 @@
 			(at 2 2.5 90)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "5f0e2558-e855-45f6-b38a-ae994a6352de")
+			(uuid "438e6256-9c99-4e69-a4ae-8f5d51254c6c")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4673,7 +4673,7 @@
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "73ff6223-eb60-408e-b215-9737e13fe91c")
+			(uuid "72dada4e-6d98-4a83-b3dd-120933f343c8")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4685,7 +4685,7 @@
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "ac5cf8d7-ae7f-43ba-81c6-9fa200a52a84")
+			(uuid "f6b820cd-ad27-4053-a75d-cc41e7713d94")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5483,7 +5483,7 @@
 			(at 0 -8 0)
 			(layer "F.SilkS")
 			(hide yes)
-			(uuid "c0127085-1466-4a7f-89c6-48160e02e376")
+			(uuid "c3a889cc-0c2c-4a6b-a154-794ce99baeaf")
 			(effects
 				(font
 					(size 1 1)
@@ -5495,7 +5495,7 @@
 			(at 0 8 0)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "31bf94b5-053e-4c71-bba1-25843564e7b4")
+			(uuid "fe7e7473-f4f2-47a6-b368-4bf7b276f966")
 			(effects
 				(font
 					(size 1 1)
@@ -5508,7 +5508,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "4849fb51-fe43-47d9-8ef8-d5f075c98c0c")
+			(uuid "0ab3169a-c230-4b5d-ad99-6417a65dfb8e")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5521,7 +5521,7 @@
 			(unlocked yes)
 			(layer "F.Fab")
 			(hide yes)
-			(uuid "07a11a3f-23d5-463e-9b8b-4df735727b26")
+			(uuid "aa4ac3ed-93bc-45fc-9e27-8b8f84b0b626")
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -12948,38 +12948,26 @@
 		(layer "Edge.Cuts")
 		(uuid "d4d8ab00-f319-4eaa-8fb2-931f4264f4e9")
 	)
-	(gr_text "Proiect Licenta\n- Macropad -"
-		(at 166.78493 30.93882 0)
+	(gr_text "ApexPad"
+		(at 167.53493 31.43882 0)
 		(layer "F.SilkS")
 		(uuid "2cfae027-be9d-43e9-a573-07eeeb989f9c")
 		(effects
 			(font
-				(size 1 1)
-				(thickness 0.2)
+				(size 2 2)
+				(thickness 0.4)
 				(bold yes)
 			)
 		)
 	)
-	(gr_text "Rev 1.0"
-		(at 176.28493 36.93882 0)
+	(gr_text "Rev 1.1"
+		(at 167.78493 35.18882 0)
 		(layer "F.SilkS")
 		(uuid "868330a9-a1a4-49e7-9ccd-dd0d3b3d42b8")
 		(effects
 			(font
-				(size 1 1)
-				(thickness 0.2)
-				(bold yes)
-			)
-		)
-	)
-	(gr_text "Realizat de Pal Antonio"
-		(at 170.28493 34.43882 0)
-		(layer "F.SilkS")
-		(uuid "e65fa3b3-189b-4580-9a37-1160570cae27")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.2)
+				(size 2 2)
+				(thickness 0.4)
 				(bold yes)
 			)
 		)
@@ -13966,15 +13954,6 @@
 		(uuid "133e7a4b-b524-4277-8c02-42ba6b21caf9")
 	)
 	(via
-		(at 126.53493 109.94618)
-		(size 0.6)
-		(drill 0.3)
-		(layers "F.Cu" "B.Cu")
-		(free yes)
-		(net 22)
-		(uuid "15eb1780-3184-4cd5-8a56-8ad898b6fb11")
-	)
-	(via
 		(at 131.53493 79.18882)
 		(size 0.6)
 		(drill 0.3)
@@ -14702,15 +14681,6 @@
 		(free yes)
 		(net 22)
 		(uuid "b314c764-8d5f-4b23-8c3b-c34d663b7a1c")
-	)
-	(via
-		(at 136.53493 89.94618)
-		(size 0.6)
-		(drill 0.3)
-		(layers "F.Cu" "B.Cu")
-		(free yes)
-		(net 22)
-		(uuid "b9a09bc7-e9d7-483f-9c7e-9758536eee00")
 	)
 	(via
 		(at 151.53493 41.18882)
