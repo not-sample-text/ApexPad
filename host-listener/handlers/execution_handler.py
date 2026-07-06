@@ -1,11 +1,36 @@
 import subprocess
 import os
+import sys
 import webbrowser
+import shlex
 from utils.logger import get_logger
 
 logger = get_logger("ExecutionHandler")
 
 class ExecutionHandler:
+    @staticmethod
+    def _get_silent_kwargs():
+        """
+        Generates subprocess kwargs that survive PyInstaller --noconsole environments.
+        Forces the OS to safely detach standard I/O streams without crashing.
+        """
+        kwargs = {
+            'stdin': subprocess.DEVNULL,
+            'stdout': subprocess.DEVNULL,
+            'stderr': subprocess.DEVNULL
+        }
+        
+        if sys.platform == 'win32':
+            # PyInstaller specific workaround to prevent WinError 6
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = 0 # SW_HIDE
+            
+            kwargs['startupinfo'] = startupinfo
+            kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+            
+        return kwargs
+
     @staticmethod
     def execute(action):
         if not action or not isinstance(action, dict):
@@ -23,7 +48,6 @@ class ExecutionHandler:
         elif action_type == "SCRIPT":
             ExecutionHandler._run_script(value, label)
         elif action_type in ("KEY", "SHORTCUT"):
-            # Handled directly by ESP32 HID over USB/BLE, ignored by host daemon
             pass
         else:
             logger.warning(f"Unknown action type '{action_type}' for '{label}'")
@@ -33,8 +57,10 @@ class ExecutionHandler:
         logger.info(f"Launching APP [{label}]: {path}")
         
         try:
-            # shell=True allows OS to resolve PATH binaries automatically
-            subprocess.Popen(path, shell=True)
+            if sys.platform == 'win32':
+                subprocess.Popen(path, **ExecutionHandler._get_silent_kwargs())
+            else:
+                subprocess.Popen(shlex.split(path), **ExecutionHandler._get_silent_kwargs())
         except Exception as e:
             logger.error(f"Failed to launch APP '{path}': {e}")
 
@@ -54,11 +80,30 @@ class ExecutionHandler:
         cmd = []
 
         if ext == ".py":
-            cmd = ["python3", path] if os.name != 'nt' else ["python", path]
+            script_dir = os.path.dirname(path)
+            venv_exe = None
+            
+            for venv_name in ["venv", ".venv", "env", ".env"]:
+                if sys.platform == 'win32':
+                    possible_exe = os.path.join(script_dir, venv_name, "Scripts", "python.exe")
+                else:
+                    possible_exe = os.path.join(script_dir, venv_name, "bin", "python3")
+                
+                if os.path.exists(possible_exe):
+                    venv_exe = possible_exe
+                    break
+
+            if venv_exe:
+                logger.info(f"Detected local venv. Routing through: {venv_exe}")
+                cmd = [venv_exe, path]
+            else:
+                logger.info("No local venv found. Using global python.")
+                cmd = ["python", path] if sys.platform == 'win32' else ["python3", path]
+
         elif ext in (".sh", ".bash"):
             cmd = ["bash", path]
         elif ext in (".bat", ".cmd"):
-            cmd = [path]
+            cmd = ["cmd.exe", "/c", path]
         elif ext == ".ps1":
             cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", path]
         elif ext == ".js":
@@ -68,13 +113,14 @@ class ExecutionHandler:
         elif ext == ".scpt":
             cmd = ["osascript", path]
         else:
-            # Fallback to default OS execution handler
-            if os.name == 'nt':
-                cmd = ["cmd", "/c", "start", '""', path]
+            if sys.platform == 'win32':
+                cmd = ["cmd.exe", "/c", "start", '""', path]
+            elif sys.platform == 'darwin':
+                cmd = ["open", path]
             else:
                 cmd = ["xdg-open", path]
         
         try:
-            subprocess.Popen(cmd)
+            subprocess.Popen(cmd, **ExecutionHandler._get_silent_kwargs())
         except Exception as e:
             logger.error(f"Failed to run SCRIPT '{path}': {e}")

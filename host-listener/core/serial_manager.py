@@ -1,6 +1,7 @@
 import serial
 import serial.tools.list_ports
 import time
+import json
 from utils.logger import get_logger
 from handlers.execution_handler import ExecutionHandler
 
@@ -12,7 +13,6 @@ class SerialManager:
         self.serial_conn = None
         self.is_running = False
         
-        # Thread-safe trigger flags
         self._wants_upload = False
         self._wants_download = False
 
@@ -45,13 +45,11 @@ class SerialManager:
             if not self.serial_conn or not self.serial_conn.is_open:
                 self.auto_connect()
 
-            # Handle UI Upload Trigger securely on the Serial Thread
             if self._wants_upload:
                 self._wants_upload = False
                 self._execute_upload()
                 continue
                 
-            # Handle UI Download Trigger securely on the Serial Thread
             if self._wants_download:
                 self._wants_download = False
                 logger.info("Requesting hardware config...")
@@ -98,14 +96,12 @@ class SerialManager:
         except ValueError:
             pass
 
-    # --- UI Trigger Methods (Called from Tray Icon Thread) ---
     def trigger_config_upload(self):
         self._wants_upload = True
 
     def trigger_config_download(self):
         self._wants_download = True
 
-    # --- Internal Execution Methods (Run strictly on Serial Thread) ---
     def _execute_upload(self):
         if not self.serial_conn or not self.serial_conn.is_open:
             logger.error("Upload aborted: No active connection.")
@@ -131,15 +127,15 @@ class SerialManager:
         self.serial_conn.write(b"\n[CFG_WRITE_EOF]\n")
         logger.info("Payload sent. Awaiting hardware reboot...")
         
-        # Force a reconnect since the ESP restarts after saving
         self.serial_conn.close()
 
     def _read_downloaded_config(self):
         logger.info("Hardware initiated config recovery stream...")
         buffer = []
         timeout_start = time.time()
+        max_lines = 1000 # Memory protection
         
-        while time.time() - timeout_start < 5:
+        while time.time() - timeout_start < 5 and len(buffer) < max_lines:
             line = self.serial_conn.readline().decode('utf-8', errors='ignore').strip()
             if "[CFG_READ_END]" in line:
                 break
@@ -147,8 +143,18 @@ class SerialManager:
                 buffer.append(line)
                 
         if not buffer:
-            logger.warning("Hardware returned an empty configuration. (Is the pad unconfigured?)")
+            logger.warning("Hardware returned an empty configuration.")
             return
             
         json_str = "\n".join(buffer)
-        self.config_manager.save_recovered_config(json_str)
+        
+        # Schema validation (Reverse BadUSB protection)
+        try:
+            parsed = json.loads(json_str)
+            if "layers" not in parsed or not isinstance(parsed["layers"], list):
+                logger.error("Hardware provided invalid config schema. Rejecting.")
+                return
+            
+            self.config_manager.save_recovered_config(json_str)
+        except json.JSONDecodeError:
+            logger.error("Hardware provided malformed JSON. Rejecting.")

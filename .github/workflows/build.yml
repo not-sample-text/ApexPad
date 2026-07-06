@@ -1,9 +1,14 @@
-name: Build ApexPad Executables
+name: Build and Release ApexPad Executables
 
 on:
     push:
-        branches: ["main", "master"]
-    workflow_dispatch: # This adds a "Run workflow" button in the GitHub UI
+        # Triggers the workflow automatically when you push a version tag (e.g., v1.1.0)
+        tags:
+            - "v*"
+    workflow_dispatch:
+
+permissions:
+    contents: write # Required for GitHub Actions to create a release
 
 jobs:
     build:
@@ -23,19 +28,38 @@ jobs:
                   python-version: "3.11"
 
             - name: Install Dependencies
-              # Make sure to cd into your python folder if it's not in the repo root
               run: |
                   python -m pip install --upgrade pip
                   pip install pyserial pystray pillow pyinstaller
 
             - name: Build Executable
-              # Adjust the 'cd' command if your main.py is inside a subfolder like host-listener/
               run: |
                   cd host-listener
-                  pyinstaller --noconsole --onefile --name ApexPad main.py
+                  # Appends the OS name automatically so files are distinct
+                  pyinstaller --noconsole --onefile --name ApexPad-${{ runner.os }} main.py
 
             - name: Upload Artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: ApexPad-Binary-${{ runner.os }}
+                  name: ApexPad-Binary-${{ matrix.os }}
                   path: host-listener/dist/*
+
+    release:
+        name: Create GitHub Release
+        needs: build # Waits for all 3 OS builds to finish successfully
+        runs-on: ubuntu-latest
+        # Only run this step if a tag was pushed (prevents accidental releases on manual runs)
+        if: startsWith(github.ref, 'refs/tags/')
+
+        steps:
+            - name: Download all OS Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: release-artifacts
+                  merge-multiple: true # Flattens all OS binaries into a single folder
+
+            - name: Publish Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: release-artifacts/*
+                  body_path: release_notes.md

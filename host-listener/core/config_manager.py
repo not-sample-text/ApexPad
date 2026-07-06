@@ -14,50 +14,13 @@ class ConfigManager:
         self.local_config_path = os.path.join(os.getcwd(), "config.json")
 
     def locate_and_load(self):
-        docs_path = os.path.join(pathlib.Path.home(), "Documents", "config.json")
-        down_path = os.path.join(pathlib.Path.home(), "Downloads", "config.json")
-
-        external_paths = []
-        if os.path.exists(docs_path):
-            external_paths.append(docs_path)
-        if os.path.exists(down_path):
-            external_paths.append(down_path)
-
-        # 1. Find the absolute newest config among the external folders
-        best_external = None
-        best_ext_time = 0
-
-        for p in external_paths:
-            mtime = os.path.getmtime(p)
-            if mtime > best_ext_time:
-                best_ext_time = mtime
-                best_external = p
-
         local_exists = os.path.exists(self.local_config_path)
 
-        # 2. Compare the best external file against the local file
-        if local_exists and best_external:
-            local_mtime = os.path.getmtime(self.local_config_path)
-            
-            if best_ext_time > local_mtime:
-                logger.info(f"Found a newer config at {best_external}. Updating local copy...")
-                self._backup_local()
-                shutil.copy2(best_external, self.local_config_path) 
-            else:
-                logger.info("Local config is up-to-date.")
-
-        # 3. Bootstrapping if local is missing completely
-        elif not local_exists and best_external:
-            logger.info(f"Local config missing. Bootstrapping from {best_external}...")
-            shutil.copy2(best_external, self.local_config_path)
-            
-        elif not local_exists and not best_external:
-            logger.warning("No config.json found anywhere. Waiting for user action...")
+        if local_exists:
+            self._load_json(self.local_config_path)
+        else:
+            logger.warning("No local config.json found. Waiting for user action...")
             self.config_data = {}
-            return
-
-        # 4. By this point, the local file is guaranteed to be the master copy
-        self._load_json(self.local_config_path)
 
     def _backup_local(self):
         """Helper method to rename the existing local config to config_old.json"""
@@ -87,7 +50,6 @@ class ConfigManager:
 
         if file_path and os.path.exists(file_path):
             try:
-                # Fix: Check if the user selected the exact file we already have
                 if os.path.abspath(file_path) == os.path.abspath(self.local_config_path):
                     logger.info("Selected local config directly. Skipping copy.")
                 else:
@@ -95,7 +57,6 @@ class ConfigManager:
                     shutil.copy2(file_path, self.local_config_path)
                     logger.info(f"Copied {file_path} to local directory as master.")
                 
-                # Reload the JSON and confirm success to the caller
                 self._load_json(self.local_config_path)
                 return True
             except Exception as e:
