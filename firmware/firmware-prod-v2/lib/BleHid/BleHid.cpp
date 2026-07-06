@@ -3,15 +3,24 @@
 #include <NimBLEHIDDevice.h>
 #include "RgbHandler.h"
 
+// Nordic UART Service (NUS) UUIDs
+#define NUS_SERVICE_UUID           "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+#define NUS_CHARACTERISTIC_RX_UUID "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+#define NUS_CHARACTERISTIC_TX_UUID "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+
 static NimBLEHIDDevice* hidDevice = nullptr;
 static NimBLECharacteristic* inputKeyboard = nullptr;
 static NimBLECharacteristic* inputConsumer = nullptr;
 static NimBLECharacteristic* batteryLevelChar = nullptr;
 
+// NUS Characteristics and callback pointer
+static NimBLECharacteristic* nusTxChar = nullptr;
+static NimBLECharacteristic* nusRxChar = nullptr;
+static void (*onNusRxData)(const std::string&) = nullptr;
+
 static bool connectedState = false;
 static bool bondedState = false;
 
-// Callbacks to drive the OLED
 static void (*onPasskeyDisplay)(uint32_t) = nullptr;
 static void (*onPasskeyClear)() = nullptr;
 
@@ -62,11 +71,7 @@ static const uint8_t hidReportMap[] = {
 class ServerCallbacks : public NimBLEServerCallbacks {
     void onConnect(NimBLEServer* pServer, ble_gap_conn_desc* desc) override {
         connectedState = true;
-        
-        // Request Fast Connection Parameters for instant, low-latency keystrokes
-        // Min interval: 7.5ms (6 * 1.25), Max interval: 15ms (12 * 1.25)
         pServer->updateConnParams(desc->conn_handle, 6, 12, 0, 400);
-        
         RgbHandler::setBleState(BleLedState::kJustConnected);
     }
 
@@ -91,10 +96,19 @@ class SecurityCallbacks : public NimBLESecurityCallbacks {
     void onAuthenticationComplete(ble_gap_conn_desc* desc) override {
         if (desc->sec_state.encrypted) {
             bondedState = true;
-            if (onPasskeyClear) onPasskeyClear(); // Clear OLED once successfully paired
+            if (onPasskeyClear) onPasskeyClear();
         } else {
-            // Disconnect if pairing fails
             NimBLEDevice::getServer()->disconnect(desc->conn_handle);
+        }
+    }
+};
+
+// Callback for Host writing to NUS RX Characteristic
+class NusCallbacks : public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic* pCharacteristic) override {
+        std::string rxValue = pCharacteristic->getValue();
+        if (rxValue.length() > 0 && onNusRxData != nullptr) {
+            onNusRxData(rxValue);
         }
     }
 };
@@ -107,10 +121,19 @@ void BleHid::setPasskeyClearCallback(void (*callback)()) {
     onPasskeyClear = callback;
 }
 
+void BleHid::setSerialRxCallback(void (*callback)(const std::string& data)) {
+    onNusRxData = callback;
+}
+
+void BleHid::sendSerialData(const char* data) {
+    if (isBondedAndConnected() && nusTxChar != nullptr) {
+        nusTxChar->setValue((uint8_t*)data, strlen(data));
+        nusTxChar->notify();
+    }
+}
+
 void BleHid::begin() {
     NimBLEDevice::init("ApexPad");
-    // DELETED: NimBLEDevice::deleteAllBonds(); -> Fixes the amnesia bug. 
-    // The ESP32 will now remember the PC across reboots.
     
     NimBLEServer* server = NimBLEDevice::createServer();
     server->setCallbacks(new ServerCallbacks());
@@ -131,11 +154,25 @@ void BleHid::begin() {
     );
     batteryService->start();
 
+    // Initialize Nordic UART Service
+    NimBLEService* nusService = server->createService(NUS_SERVICE_UUID);
+    
+    nusTxChar = nusService->createCharacteristic(
+        NUS_CHARACTERISTIC_TX_UUID,
+        NIMBLE_PROPERTY::NOTIFY
+    );
+    
+    nusRxChar = nusService->createCharacteristic(
+        NUS_CHARACTERISTIC_RX_UUID,
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR
+    );
+    nusRxChar->setCallbacks(new NusCallbacks());
+    nusService->start();
+
     hidDevice->startServices();
 
-    // Secure Pairing Model with PIN generation enabled
     NimBLEDevice::setSecurityAuth(true, true, true);
-    NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY); // Forces PC to ask for PIN
+    NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY);
     NimBLEDevice::setSecurityInitKey(BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID);
     NimBLEDevice::setSecurityRespKey(BLE_SM_PAIR_KEY_DIST_ENC | BLE_SM_PAIR_KEY_DIST_ID);
     NimBLEDevice::setSecurityCallbacks(new SecurityCallbacks());
@@ -143,9 +180,10 @@ void BleHid::begin() {
     NimBLEAdvertising* advertising = NimBLEDevice::getAdvertising();
     advertising->setAppearance(0x03C1); 
     advertising->addServiceUUID(hidDevice->hidService()->getUUID());
+    advertising->addServiceUUID(nusService->getUUID());
     advertising->start();
 
-    Serial.println("Secure BLE Stack armed. NVS Bonding Active. Fast Latency Enabled.");
+    Serial.println("Secure BLE Stack armed. NUS Activated. NVS Bonding Active.");
 }
 
 bool BleHid::isBondedAndConnected() {

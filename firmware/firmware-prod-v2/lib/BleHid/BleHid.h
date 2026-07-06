@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <string>
 
 class BleHid {
 public:
@@ -13,4 +14,8 @@ public:
     // Callbacks for the OLED UI
     static void setPasskeyShowCallback(void (*callback)(uint32_t));
     static void setPasskeyClearCallback(void (*callback)());
+
+    // BLE Serial (NUS) Methods
+    static void sendSerialData(const char* data);
+    static void setSerialRxCallback(void (*callback)(const std::string& data));
 };

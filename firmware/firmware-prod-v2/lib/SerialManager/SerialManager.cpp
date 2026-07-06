@@ -1,60 +1,99 @@
 #include "SerialManager.h"
 #include <SPIFFS.h>
 #include "OledHandler.h"
+#include "BleHid.h"
+#include "MacropadApp.h"
 
 char SerialManager::serialBuffer[64];
 uint8_t SerialManager::bufferIndex = 0;
+std::string SerialManager::bleRxQueue = "";
 
 void SerialManager::begin() {
     Serial.begin(115200);
     bufferIndex = 0;
     memset(serialBuffer, 0, sizeof(serialBuffer));
+    bleRxQueue.clear();
+    
+    // Bind the BLE RX event to this manager
+    BleHid::setSerialRxCallback([](const std::string& data) {
+        SerialManager::pushBleData(data);
+    });
+}
+
+void SerialManager::pushBleData(const std::string& data) {
+    bleRxQueue += data;
+}
+
+int SerialManager::availableBytes() {
+    return Serial.available() + bleRxQueue.length();
+}
+
+char SerialManager::readByte() {
+    if (bleRxQueue.length() > 0) {
+        char c = bleRxQueue[0];
+        bleRxQueue.erase(0, 1);
+        return c;
+    }
+    return Serial.read();
+}
+
+void SerialManager::sendResponse(const char* str) {
+    if (MacropadApp::isBleMode()) {
+        BleHid::sendSerialData(str);
+    } else {
+        Serial.print(str);
+    }
 }
 
 void SerialManager::check() {
-    while (Serial.available() > 0) {
-        char c = Serial.read();
-        
-        if (c == '\n' || c == '\r' || c == ']') {
-            if (c == ']') {
-                if (bufferIndex < sizeof(serialBuffer) - 1) {
-                    serialBuffer[bufferIndex++] = c;
-                }
-            }
-            
-            serialBuffer[bufferIndex] = '\0';
-            String cmd(serialBuffer);
+    while (availableBytes() > 0) {
+        processByte(readByte());
+    }
+}
 
-            if (cmd.indexOf("[PING]") >= 0) {
-                Serial.print("[PONG:APEXPAD]\n");
-            } else if (cmd.indexOf("[CFG_READ_REQ]") >= 0) {
-                handleConfigRead();
-            } else if (cmd.indexOf("[CFG_WRITE_REQ]") >= 0) {
-                handleConfigWrite();
-            }
-
-            bufferIndex = 0;
-            memset(serialBuffer, 0, sizeof(serialBuffer));
-        } else {
+void SerialManager::processByte(char c) {
+    if (c == '\n' || c == '\r' || c == ']') {
+        if (c == ']') {
             if (bufferIndex < sizeof(serialBuffer) - 1) {
                 serialBuffer[bufferIndex++] = c;
             }
+        }
+        
+        serialBuffer[bufferIndex] = '\0';
+        String cmd(serialBuffer);
+
+        if (cmd.indexOf("[PING]") >= 0) {
+            sendResponse("[PONG:APEXPAD]\n");
+        } else if (cmd.indexOf("[CFG_READ_REQ]") >= 0) {
+            handleConfigRead();
+        } else if (cmd.indexOf("[CFG_WRITE_REQ]") >= 0) {
+            handleConfigWrite();
+        }
+
+        bufferIndex = 0;
+        memset(serialBuffer, 0, sizeof(serialBuffer));
+    } else {
+        if (bufferIndex < sizeof(serialBuffer) - 1) {
+            serialBuffer[bufferIndex++] = c;
         }
     }
 }
 
 void SerialManager::handleConfigRead() {
-    Serial.print("[CFG_READ_START]\n");
+    sendResponse("[CFG_READ_START]\n");
     
     File file = SPIFFS.open("/config.json", FILE_READ);
     if (file) {
+        char buf[64]; 
         while (file.available()) {
-            Serial.write(file.read());
+            size_t len = file.readBytes(buf, sizeof(buf) - 1);
+            buf[len] = '\0';
+            sendResponse(buf);
         }
         file.close();
     }
     
-    Serial.print("\n[CFG_READ_END]\n");
+    sendResponse("\n[CFG_READ_END]\n");
 }
 
 void SerialManager::handleConfigWrite() {
@@ -65,20 +104,20 @@ void SerialManager::handleConfigWrite() {
     }
     
     File file = SPIFFS.open("/config.json", FILE_WRITE);
-    Serial.print("[CFG_WRITE_ACK]\n");
+    sendResponse("[CFG_WRITE_ACK]\n");
     
     uint32_t lastDataTime = millis();
     String currentLine = "";
     
-    // Blocking loop to securely capture the file stream
+    // Blocking loop perfectly supported via unified availableBytes() and readByte()
     while (true) {
-        while (Serial.available()) {
-            char c = Serial.read();
+        while (availableBytes() > 0) {
+            char c = readByte();
             if (c == '\n' || c == '\r') {
                 if (currentLine.indexOf("[CFG_WRITE_EOF]") >= 0) {
                     file.close();
                     SPIFFS.remove("/config.bak");
-                    Serial.print("[CFG_WRITE_OK]\n");
+                    sendResponse("[CFG_WRITE_OK]\n");
                     OledHandler::showSystemMessage("SUCCESS");
                     delay(1000);
                     ESP.restart();
@@ -100,12 +139,11 @@ void SerialManager::handleConfigWrite() {
             file.close();
             SPIFFS.remove("/config.json");
             
-            // Restore from backup
             if (SPIFFS.exists("/config.bak")) {
                 SPIFFS.rename("/config.bak", "/config.json");
             }
             
-            Serial.print("[CFG_WRITE_ERR]\n");
+            sendResponse("[CFG_WRITE_ERR]\n");
             OledHandler::showSystemMessage("ERROR");
             delay(2000);
             ESP.restart();
