@@ -15,6 +15,7 @@ class SerialManager:
         
         self._wants_upload = False
         self._wants_download = False
+        self._force_dump = False
 
     def auto_connect(self):
         while self.is_running:
@@ -66,6 +67,14 @@ class SerialManager:
                 
                 elif "[CFG_READ_START]" in line:
                     self._read_downloaded_config()
+                    
+                # Catch all other verbose hardware logs and route them to the debug screen
+                elif line.startswith("[EVENT]") or line.startswith("[LOG]") or line.startswith("[SYSTEM]"):
+                    logger.debug(f"Hardware: {line}")
+                    
+                else:
+                    # Catch any unformatted strings just in case
+                    logger.debug(f"Hardware (Raw): {line}")
 
             except serial.SerialException:
                 logger.error("Serial connection lost. Reverting to discovery mode...")
@@ -88,6 +97,7 @@ class SerialManager:
             row = key_index % 4
             
             logger.debug(f"Intercepted Command -> Layer: {layer}, Row: {row}, Col: {col}")
+
             action = self.config_manager.get_action(layer, row, col)
             if action:
                 ExecutionHandler.execute(action)
@@ -101,6 +111,11 @@ class SerialManager:
 
     def trigger_config_download(self):
         self._wants_download = True
+        self._force_dump = False
+
+    def trigger_force_dump(self):
+        self._wants_download = True
+        self._force_dump = True
 
     def _execute_upload(self):
         if not self.serial_conn or not self.serial_conn.is_open:
@@ -123,8 +138,23 @@ class SerialManager:
             return
 
         json_str = self.config_manager.get_raw_json_string()
-        self.serial_conn.write(json_str.encode('utf-8'))
+        lines = json_str.splitlines()
+        
+        # Dynamic delay calculation to ensure we stay well under the 5-second limit
+        delay = min(0.01, 4.0 / len(lines)) if lines else 0.01
+        
+        upload_start = time.time()
+        for line in lines:
+            if time.time() - upload_start > 5.0:
+                logger.error("Upload aborted: Exceeded strict 5-second time limit.")
+                self.serial_conn.close()
+                return
+
+            self.serial_conn.write((line + "\n").encode('utf-8'))
+            time.sleep(delay) 
+            
         self.serial_conn.write(b"\n[CFG_WRITE_EOF]\n")
+
         logger.info("Payload sent. Awaiting hardware reboot...")
         
         self.serial_conn.close()
@@ -141,14 +171,19 @@ class SerialManager:
                 break
             if line:
                 buffer.append(line)
-                
+        
         if not buffer:
             logger.warning("Hardware returned an empty configuration.")
             return
-            
-        json_str = "\n".join(buffer)
         
-        # Schema validation (Reverse BadUSB protection)
+        json_str = "\n".join(buffer)
+
+        if self._force_dump:
+            logger.info("Emergency Dump flag active. Bypassing schema validation...")
+            self.config_manager.dump_config_to_desktop(json_str)
+            self._force_dump = False
+            return
+
         try:
             parsed = json.loads(json_str)
             if "layers" not in parsed or not isinstance(parsed["layers"], list):
@@ -156,5 +191,11 @@ class SerialManager:
                 return
             
             self.config_manager.save_recovered_config(json_str)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
             logger.error("Hardware provided malformed JSON. Rejecting.")
+            logger.error(f"Parse Error Details: {e.msg} at Line {e.lineno}, Column {e.colno}")
+            
+            lines = json_str.splitlines()
+            if 0 <= e.lineno - 1 < len(lines):
+                problem_line = lines[e.lineno - 1]
+                logger.error(f"Problematic line: {problem_line.strip()}")

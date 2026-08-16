@@ -32,6 +32,10 @@ class ApexTrayIcon:
     def _on_download(self, icon, item):
         self.serial_mgr.trigger_config_download()
 
+    def _on_force_dump(self, icon, item):
+        logger.warning("Triggering raw emergency configuration dump...")
+        self.serial_mgr.trigger_force_dump()
+
     def _on_debug(self, icon, item):
         self.debug_window.show()
 
@@ -46,6 +50,7 @@ class ApexTrayIcon:
             pystray.Menu.SEPARATOR,
             item('Upload Config to Pad', self._on_upload),
             item('Recover Config from Pad', self._on_download),
+            item('Force Dump to Desktop', self._on_force_dump),
             pystray.Menu.SEPARATOR,
             item('Show Debug Console', self._on_debug),
             item('Exit', self._on_exit)

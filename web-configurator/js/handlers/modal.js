@@ -11,7 +11,6 @@ let _savedFooterHidden = false;
 export const ModalHandler = {
     setupRecorder: () => {
         const recorder = document.querySelector(".shortcut-recorder");
-
         recorder.addEventListener("click", () => {
             recorder.classList.add("recording");
             dom.modal.shortcutDisplay.innerText = "Listening...";
@@ -24,10 +23,12 @@ export const ModalHandler = {
                 const existing = dom.modal.shortcutValue.value
                     ? dom.modal.shortcutValue.value.split(" + ").filter(Boolean)
                     : [];
+
                 const canonicalMods = ["Meta", "Ctrl", "Shift", "Alt"];
                 const modsSet = new Set(
                     existing.filter((i) => canonicalMods.includes(i))
                 );
+
                 if (e.ctrlKey) modsSet.add("Ctrl");
                 if (e.shiftKey) modsSet.add("Shift");
                 if (e.altKey) modsSet.add("Alt");
@@ -38,6 +39,7 @@ export const ModalHandler = {
                 if (!["Control", "Shift", "Alt", "Meta"].includes(e.key)) {
                     const main = e.key.toUpperCase();
                     const result = modsArray.concat(main).join(" + ");
+
                     dom.modal.shortcutValue.value = result;
                     dom.modal.shortcutDisplay.innerText =
                         ModalHandler.formatDisplayFromValue(result);
@@ -103,7 +105,6 @@ export const ModalHandler = {
     setupModifierButtons: () => {
         const container = document.getElementById("input-container-shortcut");
         if (!container) return;
-
         if (container.querySelector(".modifier-buttons")) return;
 
         const bar = document.createElement("div");
@@ -119,11 +120,13 @@ export const ModalHandler = {
             const displayLabel = label;
             const token =
                 label === metaLabel && metaLabel !== "Meta" ? "Meta" : label;
+
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "modifier-btn btn-secondary";
             btn.innerText = displayLabel;
             btn.dataset.token = token;
+
             btn.addEventListener("click", (ev) => {
                 ev.preventDefault();
                 const recorder = document.querySelector(".shortcut-recorder");
@@ -133,6 +136,7 @@ export const ModalHandler = {
                 let items = hidden.value
                     ? hidden.value.split(" + ").filter(Boolean)
                     : [];
+
                 const canonical = ["Meta", "Ctrl", "Shift", "Alt"];
                 let main = items.find((i) => !canonical.includes(i));
                 let mods = items.filter((i) => canonical.includes(i));
@@ -154,18 +158,17 @@ export const ModalHandler = {
                     : "Click to Record...";
 
                 ModalHandler.updateModifierButtons();
-
                 if (recorder) setTimeout(() => recorder.focus(), 0);
             });
             bar.appendChild(btn);
         });
-
         container.appendChild(bar);
     },
 
     updateModifierButtons: () => {
         const container = document.getElementById("input-container-shortcut");
         if (!container) return;
+
         const hiddenVal = dom.modal.shortcutValue.value || "";
         const mods = hiddenVal
             ? hiddenVal
@@ -173,6 +176,7 @@ export const ModalHandler = {
                   .filter(Boolean)
                   .filter((i) => ["Meta", "Ctrl", "Shift", "Alt"].includes(i))
             : [];
+
         container.querySelectorAll(".modifier-btn").forEach((btn) => {
             const token = btn.dataset.token;
             if (token) btn.classList.toggle("active", mods.includes(token));
@@ -183,8 +187,8 @@ export const ModalHandler = {
         dom.modal.keyId.innerText = keyId;
         dom.modal.labelInput.value =
             currentText === "Unassigned" ? "" : currentText;
-
         dom.modal.overlay.classList.remove("hidden");
+
         document
             .querySelectorAll(".input-type-container")
             .forEach((el) => el.classList.add("hidden"));
@@ -193,12 +197,16 @@ export const ModalHandler = {
             configData.layers[state.activeLayerIndex].keys[keyId];
         const savedValue = savedKeyData ? savedKeyData.value : "";
 
-        // FIX: Clear any existing note from previous clicks
+        // Load the saved execution options if they exist
+        dom.modal.runAdmin.checked =
+            savedKeyData && savedKeyData.runAsAdmin ? true : false;
+        dom.modal.runHeadless.checked =
+            savedKeyData && savedKeyData.runHeadless ? true : false;
+
         const existingNote = document.getElementById("layer0-note");
         if (existingNote) existingNote.remove();
 
         if (state.activeLayerIndex === 0) {
-            // FIX: Inject explanatory note for FN Keys
             const note = document.createElement("p");
             note.id = "layer0-note";
             note.style.cssText =
@@ -220,11 +228,13 @@ export const ModalHandler = {
                 .getElementById("input-container-script")
                 .classList.remove("hidden");
             dom.modal.scriptDisplay.value = savedValue;
+            dom.modal.execOptions.classList.remove("hidden");
         } else if (state.activeLayerIndex === 3) {
             document
                 .getElementById("input-container-app")
                 .classList.remove("hidden");
             dom.modal.appInput.value = savedValue;
+            dom.modal.execOptions.classList.remove("hidden");
         }
     },
 
@@ -236,13 +246,11 @@ export const ModalHandler = {
 
         if (layerIdx === 0) {
             if (!displayName) displayName = defaultLayer1Keys[keyId].label;
-
             configData.layers[0].keys[keyId] = {
                 label: displayName,
-                value: defaultLayer1Keys[keyId].value, // FIX: Locks in "F13", "F14", etc.
+                value: defaultLayer1Keys[keyId].value,
                 type: "KEY"
             };
-
             PersistenceHandler.saveToLocal();
             KeyHandler.updateFromData(layerIdx);
             SidebarHandler.render();
@@ -250,9 +258,15 @@ export const ModalHandler = {
             return;
         }
 
-        if (layerIdx === 1) value = dom.modal.shortcutValue.value;
-        else if (layerIdx === 2) value = dom.modal.scriptDisplay.value;
-        else if (layerIdx === 3) value = dom.modal.appInput.value;
+        if (layerIdx === 1) {
+            value = dom.modal.shortcutValue.value;
+        } else if (layerIdx === 2) {
+            value = dom.modal.scriptDisplay.value
+                .replace(/^["']|["']$/g, "")
+                .trim();
+        } else if (layerIdx === 3) {
+            value = dom.modal.appInput.value.replace(/^["']|["']$/g, "").trim();
+        }
 
         if (!value) {
             delete configData.layers[layerIdx].keys[keyId];
@@ -274,6 +288,14 @@ export const ModalHandler = {
                 layerIdx === 1 ? "SHORTCUT" : layerIdx === 2 ? "SCRIPT" : "APP"
         };
 
+        // Save execution options for Scripts and Apps
+        if (layerIdx === 2 || layerIdx === 3) {
+            configData.layers[layerIdx].keys[keyId].runAsAdmin =
+                dom.modal.runAdmin.checked;
+            configData.layers[layerIdx].keys[keyId].runHeadless =
+                dom.modal.runHeadless.checked;
+        }
+
         PersistenceHandler.saveToLocal();
         KeyHandler.updateFromData(layerIdx);
         SidebarHandler.render();
@@ -285,12 +307,10 @@ export const ModalHandler = {
             document.removeEventListener("keydown", globalKeydownHandler, true);
             globalKeydownHandler = null;
         }
-
         const recorder = document.querySelector(".shortcut-recorder");
         if (recorder) {
             recorder.classList.remove("recording");
         }
-
         dom.modal.overlay.classList.add("hidden");
     },
 
@@ -298,8 +318,10 @@ export const ModalHandler = {
         if (!dom.modal.samplePrompt) return;
         const headerEl = document.querySelector(".modal-header");
         const footerEl = document.querySelector(".modal-footer");
+
         _savedModalHeaderHTML = headerEl ? headerEl.innerHTML : null;
         if (headerEl) headerEl.innerHTML = "<h3>Setup Complete</h3>";
+
         _savedFooterHidden = footerEl
             ? footerEl.classList.contains("hidden")
             : false;
@@ -307,17 +329,18 @@ export const ModalHandler = {
 
         dom.modal.overlay.classList.remove("hidden");
         dom.modal.samplePrompt.classList.remove("hidden");
+
         document
             .querySelectorAll(".input-type-container")
             .forEach((el) => el.classList.add("hidden"));
 
-        // FIX: Fetch the generated-config.json internally
         dom.modal.sampleLoadBtn.onclick = async () => {
             try {
                 const res = await fetch("./generated-config.json");
                 if (!res.ok)
                     throw new Error("Failed to fetch generated-config.json");
                 const parsed = await res.json();
+
                 PersistenceHandler.applyConfig(parsed);
                 PersistenceHandler.saveToLocal();
             } catch (e) {
@@ -329,7 +352,6 @@ export const ModalHandler = {
 
         dom.modal.sampleCancelBtn.onclick = () => {
             ModalHandler.hideSamplePrompt();
-            // User opted for Empty Slate, UI remains as-is
         };
     },
 
@@ -340,30 +362,36 @@ export const ModalHandler = {
 
         const headerEl = document.querySelector(".modal-header");
         const footerEl = document.querySelector(".modal-footer");
+
         if (headerEl && _savedModalHeaderHTML !== null)
             headerEl.innerHTML = _savedModalHeaderHTML;
         if (footerEl) {
             if (!_savedFooterHidden) footerEl.classList.remove("hidden");
             else footerEl.classList.add("hidden");
         }
+
         dom.modal.shortcutDisplay.innerText = dom.modal.shortcutValue.value
             ? ModalHandler.formatDisplayFromValue(dom.modal.shortcutValue.value)
             : "Click to Record...";
         ModalHandler.updateModifierButtons();
     },
+
     reset: () => {
         dom.modal.labelInput.value = "";
         dom.modal.shortcutValue.value = "";
         dom.modal.shortcutDisplay.innerText = "Click to Record...";
-
         dom.modal.scriptDisplay.value = "";
         dom.modal.appInput.value = "";
+
+        dom.modal.runAdmin.checked = false;
+        dom.modal.runHeadless.checked = false;
 
         const recorder = document.querySelector(".shortcut-recorder");
         if (recorder) {
             recorder.classList.remove("recording");
             recorder.blur();
         }
+
         if (globalKeydownHandler) {
             document.removeEventListener("keydown", globalKeydownHandler, true);
             globalKeydownHandler = null;
@@ -376,9 +404,11 @@ export const ModalHandler = {
         dom.modal.cancelBtn.addEventListener("click", ModalHandler.close);
         dom.modal.resetBtn.addEventListener("click", ModalHandler.reset);
         dom.modal.saveBtn.addEventListener("click", ModalHandler.save);
+
         dom.modal.overlay.addEventListener("click", (e) => {
             if (e.target === dom.modal.overlay) ModalHandler.close();
         });
+
         ModalHandler.setupRecorder();
         ModalHandler.setupModifierButtons();
     }

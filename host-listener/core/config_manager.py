@@ -15,7 +15,6 @@ class ConfigManager:
 
     def locate_and_load(self):
         local_exists = os.path.exists(self.local_config_path)
-
         if local_exists:
             self._load_json(self.local_config_path)
         else:
@@ -40,7 +39,7 @@ class ConfigManager:
         root.withdraw()
         
         # Ensures the dialog stays on top of other windows
-        root.attributes('-topmost', True) 
+        root.attributes('-topmost', True)         
         
         file_path = filedialog.askopenfilename(
             title="ApexPad: Select Config to Upload",
@@ -65,7 +64,7 @@ class ConfigManager:
         return False
 
     def save_recovered_config(self, json_str):
-        """Used for the Download Button: Backs up local, saves new locally & in Downloads."""
+        """Used for the normal Download Button: Backs up local, saves new locally & in Downloads."""
         self._backup_local()
 
         # 1. Save new locally (This becomes the highest priority master)
@@ -87,6 +86,16 @@ class ConfigManager:
 
         # 3. Reload into memory
         self._load_json(self.local_config_path)
+
+    def dump_config_to_desktop(self, json_str):
+        """Used for Emergency Dumps: Saves raw string to Desktop, ignores memory loading."""
+        desktop_path = os.path.join(pathlib.Path.home(), "Desktop", "emergency_dump.json")
+        try:
+            with open(desktop_path, 'w', encoding='utf-8') as f:
+                f.write(json_str)
+            logger.info(f"SUCCESS: Raw hardware dump securely written to {desktop_path}")
+        except Exception as e:
+            logger.error(f"Failed to write emergency dump to Desktop: {e}")
 
     def _load_json(self, path):
         try:

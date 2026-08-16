@@ -1,0 +1,286 @@
+{
+  "layers": [
+    {
+      "id": 0,
+      "name": "FN Keys",
+      "keys": {
+        "C0R0": {
+          "label": "Mute",
+          "value": "F13",
+          "type": "KEY"
+        },
+        "C1R0": {
+          "label": "Deafen",
+          "value": "F14",
+          "type": "KEY"
+        },
+        "C2R0": {
+          "label": "Toggle Camera",
+          "value": "F15",
+          "type": "KEY"
+        },
+        "C0R1": {
+          "label": "Toggle Push To Talk",
+          "value": "F16",
+          "type": "KEY"
+        },
+        "C1R1": {
+          "label": "Push To Talk",
+          "value": "F17",
+          "type": "KEY"
+        },
+        "C2R1": {
+          "label": "Toggle Screen Share",
+          "value": "F18",
+          "type": "KEY"
+        },
+        "C0R2": {
+          "label": "F19",
+          "value": "F19",
+          "type": "KEY"
+        },
+        "C1R2": {
+          "label": "F20",
+          "value": "F20",
+          "type": "KEY"
+        },
+        "C2R2": {
+          "label": "F21",
+          "value": "F21",
+          "type": "KEY"
+        },
+        "C0R3": {
+          "label": "Toggle Game Overlay",
+          "value": "F22",
+          "type": "KEY"
+        },
+        "C1R3": {
+          "label": "F23",
+          "value": "F23",
+          "type": "KEY"
+        },
+        "C2R3": {
+          "label": "Disconnect",
+          "value": "F24",
+          "type": "KEY"
+        }
+      }
+    },
+    {
+      "id": 1,
+      "name": "Shortcuts",
+      "keys": {
+        "C0R0": {
+          "label": "Screenshot",
+          "value": "Meta + Shift + S",
+          "type": "SHORTCUT"
+        },
+        "C1R0": {
+          "label": "Color Picker",
+          "value": "Meta + Shift + C",
+          "type": "SHORTCUT"
+        },
+        "C2R0": {
+          "label": "Copy History",
+          "value": "Meta + V",
+          "type": "SHORTCUT"
+        },
+        "C0R1": {
+          "label": "Photoshop Export",
+          "value": "Ctrl + Shift + Alt + W",
+          "type": "SHORTCUT"
+        },
+        "C1R1": {
+          "label": "Task Manager",
+          "value": "Ctrl + Shift + ESCAPE",
+          "type": "SHORTCUT"
+        },
+        "C2R1": {
+          "label": "Restart Video Drivers",
+          "value": "Meta + Ctrl + Shift + B",
+          "type": "SHORTCUT"
+        },
+        "C0R2": {
+          "label": "Swap Program",
+          "value": "Alt + TAB",
+          "type": "SHORTCUT"
+        },
+        "C1R2": {
+          "label": "Save As",
+          "value": "Ctrl + Shift + S",
+          "type": "SHORTCUT"
+        },
+        "C2R2": {
+          "label": "Close Tab",
+          "value": "Ctrl + W",
+          "type": "SHORTCUT"
+        },
+        "C0R3": {
+          "label": "Private Window",
+          "value": "Ctrl + Shift + P",
+          "type": "SHORTCUT"
+        },
+        "C1R3": {
+          "label": "New Window",
+          "value": "Ctrl + N",
+          "type": "SHORTCUT"
+        },
+        "C2R3": {
+          "label": "New Tab",
+          "value": "Ctrl + T",
+          "type": "SHORTCUT"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Commands",
+      "keys": {
+        "C0R0": {
+          "label": "Clean Temporary Files",
+          "value": "C:\\Users\\User\\Desktop\\utilities\\Clean-TempFiles.ps1",
+          "type": "SCRIPT",
+          "runAsAdmin": true,
+          "runHeadless": false
+        },
+        "C1R0": {
+          "label": "Empty Trash",
+          "value": "C:\\Users\\User\\Desktop\\utilities\\Empty-Trash.ps1",
+          "type": "SCRIPT",
+          "runAsAdmin": true,
+          "runHeadless": false
+        },
+        "C2R0": {
+          "label": "Reset Network",
+          "value": "C:\\Users\\User\\Desktop\\utilities\\Reset-Network.ps1",
+          "type": "SCRIPT",
+          "runAsAdmin": true,
+          "runHeadless": false
+        },
+        "C0R1": {
+          "label": "Repair System Files",
+          "value": "C:\\Users\\User\\Desktop\\utilities\\Repair-SystemFiles.ps1",
+          "type": "SCRIPT",
+          "runAsAdmin": true,
+          "runHeadless": false
+        },
+        "C1R1": {
+          "label": "Restart UI",
+          "value": "C:\\Users\\User\\Desktop\\utilities\\Restart-UI.bat",
+          "type": "SCRIPT",
+          "runAsAdmin": true,
+          "runHeadless": false
+        },
+        "C2R1": {
+          "label": "Import Photos",
+          "value": "C:\\Users\\User\\Desktop\\utilities\\photos\\import.py",
+          "type": "SCRIPT",
+          "runAsAdmin": false,
+          "runHeadless": false
+        },
+        "C0R2": {
+          "label": "Whatsapp Web",
+          "value": "https://web.whatsapp.com/",
+          "type": "SCRIPT"
+        },
+        "C1R2": {
+          "label": "Youtube Music",
+          "value": "https://music.youtube.com/",
+          "type": "SCRIPT"
+        },
+        "C2R2": {
+          "label": "Gemini",
+          "value": "https://gemini.google.com/",
+          "type": "SCRIPT"
+        },
+        "C0R3": {
+          "label": "KickAss Anime",
+          "value": "https://kaa.lt/",
+          "type": "SCRIPT"
+        },
+        "C1R3": {
+          "label": "Anunturi Facultate",
+          "value": "https://inginerie.utcluj.ro/acasa.html",
+          "type": "SCRIPT"
+        },
+        "C2R3": {
+          "label": "Note Facultate",
+          "value": "https://app-meutclujapp-ui-v2-01-bne7e9bxh5c0abbu.z01.azurefd.net/faculty/grades",
+          "type": "SCRIPT"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "name": "Launcher",
+      "keys": {
+        "C0R0": {
+          "label": "Firefox",
+          "value": "C:\\Program Files\\Mozilla Firefox\\firefox.exe",
+          "type": "APP"
+        },
+        "C1R0": {
+          "label": "Discord",
+          "value": "C:\\Users\\User\\AppData\\Local\\Discord\\app-1.0.9254\\Discord.exe",
+          "type": "APP"
+        },
+        "C2R0": {
+          "label": "VS Code",
+          "value": "C:\\Program Files\\Microsoft VS Code\\Code.exe",
+          "type": "APP"
+        },
+        "C0R3": {
+          "label": "Steam",
+          "value": "C:\\Program Files (x86)\\Steam\\Steam.exe",
+          "type": "APP"
+        },
+        "C1R3": {
+          "label": "Roblox",
+          "value": "C:\\Users\\User\\AppData\\Local\\Bloxstrap\\Bloxstrap.exe -player",
+          "type": "APP"
+        },
+        "C2R3": {
+          "label": "Cyberpunk 2077",
+          "value": "C:\\Users\\User\\Desktop\\Games\\Cyberpunk 2077\\bin\\x64\\Cyberpunk2077.exe",
+          "type": "APP"
+        },
+        "C0R2": {
+          "label": "RawTherapee",
+          "value": "C:\\Program Files\\RawTherapee\\5.12\\rawtherapee.exe",
+          "type": "APP"
+        },
+        "C1R2": {
+          "label": "Photoshop",
+          "value": "C:\\Program Files\\Adobe\\Adobe Photoshop CC 2019\\Photoshop.exe",
+          "type": "APP"
+        },
+        "C2R2": {
+          "label": "Figma",
+          "value": "C:\\Users\\User\\AppData\\Local\\Figma\\app-126.6.12\\Figma.exe",
+          "type": "APP"
+        },
+        "C0R1": {
+          "label": "OBS Studio",
+          "value": "C:\\Program Files\\obs-studio\\bin\\64bit\\obs64.exe",
+          "type": "APP"
+        },
+        "C1R1": {
+          "label": "EOS Webcam Utility",
+          "value": "C:\\Program Files\\Canon\\EOS Webcam Utility Pro\\EOS Webcam Utility UI\\EOS Webcam Utility Pro.exe",
+          "type": "APP"
+        },
+        "C2R1": {
+          "label": "ApexPad",
+          "value": "C:\\Users\\User\\Desktop\\macropad\\ApexPadSoft\\ApexPad.exe",
+          "type": "APP"
+        }
+      }
+    }
+  ],
+  "lighting": {
+    "mode": "SOLID",
+    "color": "#00e5ff",
+    "brightness": "128",
+    "speed": "10"
+  }
+}

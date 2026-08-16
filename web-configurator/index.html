@@ -10,30 +10,24 @@
 </head>
 
 <body>
-
     <div class="navbar">
         <div class="hamburger-menu active" id="hamburger-btn">
             <div class="bar"></div>
             <div class="bar"></div>
             <div class="bar"></div>
         </div>
-
         <div class="title">Macropad Web Configurator</div>
-
         <div style="display: flex; gap: 10px; margin-left: auto;">
             <input type="file" id="import-file-input" hidden accept=".json">
             <button id="btn-import-json" class="btn-secondary" style="font-size: 0.8rem;">
                 <i class="ti ti-upload"></i> Import
             </button>
-
             <button id="btn-export-json" class="btn-primary" style="font-size: 0.8rem;">
                 <i class="ti ti-download"></i> Export JSON
             </button>
         </div>
     </div>
-
     <div class="sidebar" id="main-sidebar">
-
         <div id="sidebar-layers-view">
             <ul>
                 <li>
@@ -65,7 +59,6 @@
                     <ul class="key-list" id="layer-list-3"></ul>
                 </li>
             </ul>
-
             <div style="margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
                 <div class="category-header" id="sidebar-settings-btn">
                     <i class="ti ti-settings category-icon" style="transform: none;"></i>
@@ -73,13 +66,11 @@
                 </div>
             </div>
         </div>
-
         <div id="sidebar-controls-view" class="lighting-controls-panel hidden">
             <div class="category-header" id="back-to-layers-btn" style="margin-bottom: 15px; padding-left:0;">
                 <i class="ti ti-arrow-left"></i>
                 <p class="category">Back to Layers</p>
             </div>
-
             <div class="control-group">
                 <label>Effect Mode</label>
                 <select id="light-mode">
@@ -105,13 +96,10 @@
                 <input type="range" id="light-speed" min="1" max="20">
             </div>
         </div>
-
         <div class="resizer"></div>
     </div>
-
     <main>
         <h2 id="layer-title">Select Layer</h2>
-
         <div class="macropad-container">
             <div class="oled-screen">
                 <div class="oled-header">
@@ -132,7 +120,6 @@
             <div class="rotary-encoder">
                 <div class="knob"></div>
             </div>
-
             <div class="key" data-id="C0R0">C0R0</div>
             <div class="key" data-id="C1R0">C1R0</div>
             <div class="key" data-id="C2R0">C2R0</div>
@@ -146,7 +133,6 @@
             <div class="key" data-id="C1R3">C1R3</div>
             <div class="key" data-id="C2R3">C2R3</div>
         </div>
-
         <div class="lighting-view hidden">
             <div class="chassis-shape">
                 <div class="pcb-column left">
@@ -190,9 +176,7 @@
                 </div>
             </div>
         </div>
-
     </main>
-
     <div id="config-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -223,7 +207,6 @@
                     </div>
                     <input type="hidden" id="shortcut-value">
                 </div>
-
                 <div id="input-container-script" class="form-group input-type-container hidden">
                     <label>Script Path or URL</label>
                     <input type="text" id="script-path-display" placeholder="e.g., C:\Scripts\organize.bat">
@@ -234,23 +217,27 @@
                     <input type="text" id="app-path-input" placeholder="e.g., C:\Windows\system32\calc.exe">
                     <small>Paste the full absolute path to the executable.</small>
                 </div>
+
+                <!-- NEW EXECUTION OPTIONS -->
+                <div id="execution-options" class="form-group input-type-container hidden">
+                    <label>Execution Options</label>
+                    <div style="display: flex; gap: 15px; margin-top: 5px;">
+                        <label
+                            style="font-weight: normal; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="opt-run-admin"> Run as Administrator
+                        </label>
+                        <label
+                            style="font-weight: normal; font-size: 0.85rem; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="opt-run-headless"> Run Headless (Hidden)
+                        </label>
+                    </div>
+                </div>
+
             </div>
             <div class="modal-footer">
                 <button id="btn-cancel" class="btn-secondary">Cancel</button>
                 <button id="btn-reset" class="btn-secondary">Reset</button>
                 <button id="btn-save" class="btn-primary">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="sample-prompt" class="form-group input-type-container hidden">
-        <label>Setup Complete</label>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-            <p>Would you like to load a comprehensive sample configuration to get started, or begin with a completely
-                empty slate?</p>
-            <div style="display:flex;gap:8px;justify-content:flex-end;">
-                <button id="btn-sample-cancel" class="btn-secondary">Empty Slate</button>
-                <button id="btn-sample-load" class="btn-primary">Load Sample Data</button>
             </div>
         </div>
     </div>
@@ -288,7 +275,6 @@
             </div>
         </div>
     </div>
-
     <script type="module" src="js/main.js"></script>
 </body>
 
